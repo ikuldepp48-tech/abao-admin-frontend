@@ -28,8 +28,9 @@ export const register = (data: RegisterVO) => {
 }
 
 // 使用租户名，获得租户编号
-export const getTenantIdByName = (name: string) => {
-  return request.get({ url: '/system/tenant/get-id-by-name?name=' + name })
+export const getTenantIdByName = async (name: string) => {
+  const res = await request.get({ url: '/system/tenant/get-id-by-name?name=' + name })
+  return res?.data || res
 }
 
 // 使用租户域名，获得租户信息
