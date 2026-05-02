@@ -794,6 +794,69 @@ const remainingRouter: AppRouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: '/restaurant',
+    component: Layout,
+    name: 'Restaurant',
+    redirect: '/restaurant/brand',
+    meta: {
+      title: '餐饮',
+      icon: 'ep:food',
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: 'brand',
+        component: () => import('@/views/restaurant/brand/index.vue'),
+        name: 'RestaurantBrand',
+        meta: {
+          title: '品牌管理',
+          icon: 'ep:shop',
+          noCache: true
+        }
+      },
+      {
+        path: 'store',
+        component: () => import('@/views/restaurant/store/index.vue'),
+        name: 'RestaurantStore',
+        meta: {
+          title: '门店管理',
+          icon: 'ep:office-building',
+          noCache: true
+        }
+      },
+      {
+        path: 'table',
+        component: () => import('@/views/restaurant/table/index.vue'),
+        name: 'RestaurantTable',
+        meta: {
+          title: '桌台管理',
+          icon: 'ep:grid',
+          noCache: true
+        }
+      },
+      {
+        path: 'category',
+        component: () => import('@/views/restaurant/category/index.vue'),
+        name: 'RestaurantCategory',
+        meta: {
+          title: '菜品分类',
+          icon: 'ep:menu',
+          noCache: true
+        }
+      },
+      {
+        path: 'dish',
+        component: () => import('@/views/restaurant/dish/index.vue'),
+        name: 'RestaurantDish',
+        meta: {
+          title: '菜品管理',
+          icon: 'ep:dish',
+          noCache: true
+        }
+      }
+    ]
   }
 ]
 
