@@ -1,5 +1,5 @@
 <template>
-  <Dialog :title="dialogTitle" v-model="dialogVisible" width="700">
+  <Dialog :title="dialogTitle" v-model="dialogVisible" width="800">
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" v-loading="formLoading">
       <el-row>
         <el-col :span="12">
@@ -17,7 +17,7 @@
       </el-row>
       <el-row>
         <el-col :span="12">
-          <el-form-item label="售价" prop="price">
+          <el-form-item label="展示售价" prop="price">
             <el-input-number v-model="formData.price" :precision="2" :min="0" placeholder="请输入售价" />
           </el-form-item>
         </el-col>
@@ -48,6 +48,42 @@
       <el-form-item label="简介描述">
         <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入菜品简介（可选）" />
       </el-form-item>
+
+      <!-- SKU 规格管理 -->
+      <el-divider content-position="left">商品规格 (SKU)</el-divider>
+      <div style="margin-bottom: 10px">
+        <el-button type="primary" size="small" @click="addSku">
+          <Icon icon="ep:plus" /> 添加规格
+        </el-button>
+        <span class="text-gray-400 ml-10px" style="font-size: 12px">至少添加一个规格，如"大碗"、"小碗"</span>
+      </div>
+      <el-table :data="formData.skus" border stripe size="small" style="width: 100%">
+        <el-table-column label="规格名称" min-width="120">
+          <template #default="{ row }">
+            <el-input v-model="row.name" placeholder="如：大碗" size="small" />
+          </template>
+        </el-table-column>
+        <el-table-column label="售价" width="150">
+          <template #default="{ row }">
+            <el-input-number v-model="row.price" :precision="2" :min="0.01" size="small" controls-position="right" />
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <el-switch v-model="row.status" :active-value="0" :inactive-value="1" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="70" align="center">
+          <template #default="{ $index }">
+            <el-button link type="danger" size="small" @click="removeSku($index)" :disabled="formData.skus.length <= 1">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div v-if="formData.minPrice != null" class="mt-10px" style="font-size: 12px; color: #909399">
+        价格区间：¥{{ formData.minPrice }} ~ ¥{{ formData.maxPrice }}
+      </div>
     </el-form>
     <template #footer>
       <el-button @click="submitForm" type="primary" :disabled="formLoading">确 定</el-button>
@@ -82,13 +118,14 @@ const formData = ref({
   isSignature: false,
   isNew: false,
   sort: 0,
-  status: CommonStatusEnum.ENABLE
+  status: CommonStatusEnum.ENABLE,
+  minPrice: undefined,
+  maxPrice: undefined,
+  skus: [] as DishApi.SkuVO[]
 })
 const formRules = reactive({
   name: [{ required: true, message: '菜品名称不能为空', trigger: 'blur' }],
-  categoryId: [{ required: true, message: '分类不能为空', trigger: 'change' }],
-  price: [{ required: true, message: '售价不能为空', trigger: 'blur' }],
-  status: [{ required: true, message: '状态不能为空', trigger: 'change' }]
+  categoryId: [{ required: true, message: '分类不能为空', trigger: 'change' }]
 })
 const formRef = ref()
 
@@ -103,7 +140,28 @@ const open = async (type: string, id?: number) => {
   if (id) {
     formLoading.value = true
     try {
-      formData.value = await DishApi.getDish(id)
+      const data = await DishApi.getDish(id)
+      formData.value = {
+        id: data.id,
+        categoryId: data.categoryId,
+        name: data.name,
+        price: data.price,
+        image: data.image,
+        description: data.description,
+        isSignature: data.isSignature,
+        isNew: data.isNew,
+        sort: data.sort,
+        status: data.status,
+        minPrice: data.minPrice,
+        maxPrice: data.maxPrice,
+        skus: (data.skus || []).map((sku: any) => ({
+          id: sku.id,
+          spuId: sku.spuId,
+          name: sku.name || '',
+          price: sku.price || 0,
+          status: sku.status != null ? sku.status : CommonStatusEnum.ENABLE
+        }))
+      }
     } finally {
       formLoading.value = false
     }
@@ -111,11 +169,38 @@ const open = async (type: string, id?: number) => {
 }
 defineExpose({ open })
 
+const addSku = () => {
+  formData.value.skus.push({
+    name: '',
+    price: 0,
+    status: CommonStatusEnum.ENABLE
+  })
+}
+
+const removeSku = (index: number) => {
+  if (formData.value.skus.length > 1) {
+    formData.value.skus.splice(index, 1)
+  }
+}
+
 const emit = defineEmits(['success'])
 const submitForm = async () => {
   if (!formRef) return
-  const valid = await formRef.value.validate()
-  if (!valid) return
+  // 简单校验SKU
+  if (!formData.value.skus || formData.value.skus.length === 0) {
+    message.error('请至少添加一个规格(SKU)')
+    return
+  }
+  for (const sku of formData.value.skus) {
+    if (!sku.name || !sku.name.trim()) {
+      message.error('请填写所有规格名称')
+      return
+    }
+    if (!sku.price || sku.price <= 0) {
+      message.error('规格"' + sku.name + '"的售价必须大于0')
+      return
+    }
+  }
   formLoading.value = true
   try {
     const data = formData.value as unknown as DishApi.DishVO
@@ -144,7 +229,10 @@ const resetForm = () => {
     isSignature: false,
     isNew: false,
     sort: 0,
-    status: CommonStatusEnum.ENABLE
+    status: CommonStatusEnum.ENABLE,
+    minPrice: undefined,
+    maxPrice: undefined,
+    skus: [{ name: '', price: 0, status: CommonStatusEnum.ENABLE }]
   }
   formRef.value?.resetFields()
 }

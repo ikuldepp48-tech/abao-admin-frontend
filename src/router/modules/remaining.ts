@@ -855,6 +855,16 @@ const remainingRouter: AppRouteRecordRaw[] = [
           icon: 'ep:dish',
           noCache: true
         }
+      },
+      {
+        path: 'dish-sku',
+        component: () => import('@/views/restaurant/dish/sku/index.vue'),
+        name: 'RestaurantDishSku',
+        meta: {
+          title: 'SKU管理(调试)',
+          icon: 'ep:list',
+          noCache: true
+        }
       }
     ]
   }

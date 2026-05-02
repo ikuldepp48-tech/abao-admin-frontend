@@ -1,5 +1,20 @@
 import request from '@/config/axios'
 
+export interface SkuVO {
+  id?: number
+  spuId?: number
+  name: string
+  properties?: string
+  price: number
+  memberPrice?: number
+  costPrice?: number
+  weight?: number
+  barcode?: string
+  picture?: string
+  sort?: number
+  status?: number
+}
+
 export interface DishVO {
   id: number
   categoryId: number
@@ -13,6 +28,9 @@ export interface DishVO {
   status: number
   tenantId: number
   createTime: string
+  minPrice?: number
+  maxPrice?: number
+  skus?: SkuVO[]
 }
 
 export const getDishPage = async (params: any) => {

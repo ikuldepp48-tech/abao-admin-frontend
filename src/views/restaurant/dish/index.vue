@@ -33,9 +33,12 @@
           {{ getCategoryName(scope.row.categoryId) }}
         </template>
       </el-table-column>
-      <el-table-column label="售价" align="center" prop="price" min-width="80">
+      <el-table-column label="售价" align="center" prop="price" min-width="100">
         <template #default="scope">
-          ¥{{ scope.row.price }}
+          <span v-if="scope.row.minPrice != null && scope.row.maxPrice != null && scope.row.minPrice !== scope.row.maxPrice">
+            ¥{{ scope.row.minPrice }} ~ ¥{{ scope.row.maxPrice }}
+          </span>
+          <span v-else>¥{{ scope.row.price }}</span>
         </template>
       </el-table-column>
       <el-table-column label="排序" align="center" prop="sort" min-width="60" />
