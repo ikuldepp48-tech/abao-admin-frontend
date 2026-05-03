@@ -885,6 +885,16 @@ const remainingRouter: AppRouteRecordRaw[] = [
           icon: 'ep:setting',
           noCache: true
         }
+      },
+      {
+        path: 'order',
+        component: () => import('@/views/restaurant/order/index.vue'),
+        name: 'RestaurantOrder',
+        meta: {
+          title: '订单管理',
+          icon: 'ep:tickets',
+          noCache: true
+        }
       }
     ]
   }
