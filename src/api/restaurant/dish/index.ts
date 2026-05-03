@@ -31,6 +31,7 @@ export interface DishVO {
   minPrice?: number
   maxPrice?: number
   skus?: SkuVO[]
+  addonGroupNames?: string[]
 }
 
 export const getDishPage = async (params: any) => {

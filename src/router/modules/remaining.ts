@@ -865,6 +865,16 @@ const remainingRouter: AppRouteRecordRaw[] = [
           icon: 'ep:list',
           noCache: true
         }
+      },
+      {
+        path: 'dish-addon',
+        component: () => import('@/views/restaurant/dishAddon/index.vue'),
+        name: 'RestaurantDishAddon',
+        meta: {
+          title: '加料管理',
+          icon: 'ep:set-up',
+          noCache: true
+        }
       }
     ]
   }

@@ -84,6 +84,23 @@
       <div v-if="formData.minPrice != null" class="mt-10px" style="font-size: 12px; color: #909399">
         价格区间：¥{{ formData.minPrice }} ~ ¥{{ formData.maxPrice }}
       </div>
+
+      <!-- 加料配置 -->
+      <el-divider content-position="left">加料配置</el-divider>
+      <div v-if="addonGroups.length === 0" class="text-gray-400" style="font-size: 12px; padding: 10px 0">
+        暂无可用的加料组，请先在"加料管理"中添加
+      </div>
+      <div v-for="group in addonGroups" :key="group.groupName" style="margin-bottom: 8px">
+        <el-checkbox
+          :model-value="checkedGroups.includes(group.groupName)"
+          @change="(val: boolean) => toggleGroup(group.groupName, val)"
+        >
+          {{ group.groupName }}
+          <span class="text-gray-400" style="font-size: 12px">
+            （{{ group.items.length }}项：{{ group.items.map((a: any) => a.name).join(' / ') }}）
+          </span>
+        </el-checkbox>
+      </div>
     </el-form>
     <template #footer>
       <el-button @click="submitForm" type="primary" :disabled="formLoading">确 定</el-button>
@@ -96,6 +113,7 @@
 import { DICT_TYPE, getIntDictOptions } from '@/utils/dict'
 import * as DishApi from '@/api/restaurant/dish'
 import * as CategoryApi from '@/api/restaurant/category'
+import * as AddonApi from '@/api/restaurant/dishAddon'
 import { CommonStatusEnum } from '@/utils/constants'
 
 defineOptions({ name: 'RestaurantDishForm' })
@@ -108,6 +126,17 @@ const dialogTitle = ref('')
 const formLoading = ref(false)
 const formType = ref('')
 const categoryList = ref([])
+const addonGroups = ref<{ groupName: string; items: AddonApi.AddonVO[] }[]>([])
+const checkedGroups = ref<string[]>([])
+
+const toggleGroup = (groupName: string, val: boolean) => {
+  if (val) {
+    checkedGroups.value.push(groupName)
+  } else {
+    checkedGroups.value = checkedGroups.value.filter(g => g !== groupName)
+  }
+}
+
 const formData = ref({
   id: undefined,
   categoryId: undefined,
@@ -133,10 +162,14 @@ const open = async (type: string, id?: number) => {
   dialogVisible.value = true
   dialogTitle.value = t('action.' + type)
   formType.value = type
-  // 加载分类列表
-  const cats = await CategoryApi.getSimpleCategoryList()
-  categoryList.value = cats
   resetForm()
+  // 并行加载分类和加料
+  const [cats, addons] = await Promise.all([
+    CategoryApi.getSimpleCategoryList(),
+    AddonApi.getAddonListByBrand(1).catch(() => [] as AddonApi.AddonVO[])
+  ])
+  categoryList.value = cats
+  buildAddonGroups(addons)
   if (id) {
     formLoading.value = true
     try {
@@ -162,11 +195,22 @@ const open = async (type: string, id?: number) => {
           status: sku.status != null ? sku.status : CommonStatusEnum.ENABLE
         }))
       }
+      // 回填已关联的加料组
+      checkedGroups.value = data.addonGroupNames || []
     } finally {
       formLoading.value = false
     }
   }
 }
+const buildAddonGroups = (addons: AddonApi.AddonVO[]) => {
+  const map = new Map<string, AddonApi.AddonVO[]>()
+  for (const a of addons) {
+    if (!map.has(a.groupName)) map.set(a.groupName, [])
+    map.get(a.groupName)!.push(a)
+  }
+  addonGroups.value = Array.from(map.entries()).map(([groupName, items]) => ({ groupName, items }))
+}
+
 defineExpose({ open })
 
 const addSku = () => {
@@ -203,7 +247,7 @@ const submitForm = async () => {
   }
   formLoading.value = true
   try {
-    const data = formData.value as unknown as DishApi.DishVO
+    const data = { ...formData.value, addonGroupNames: checkedGroups.value } as unknown as DishApi.DishVO
     if (formType.value === 'create') {
       await DishApi.createDish(data)
       message.success(t('common.createSuccess'))
@@ -234,6 +278,8 @@ const resetForm = () => {
     maxPrice: undefined,
     skus: [{ name: '', price: 0, status: CommonStatusEnum.ENABLE }]
   }
+  checkedGroups.value = []
+  addonGroups.value = []
   formRef.value?.resetFields()
 }
 </script>
