@@ -156,7 +156,7 @@ const formLoading = ref(false)
 const formType = ref('')
 const formData = ref({
   id: undefined,
-  brandId: 1,
+  brandId: 3,
   groupName: '',
   name: '',
   extraPrice: 0,
@@ -190,7 +190,7 @@ const openForm = async (type: string, id?: number) => {
 const resetForm = () => {
   formData.value = {
     id: undefined,
-    brandId: 1,
+    brandId: 3,
     groupName: '',
     name: '',
     extraPrice: 0,
@@ -202,7 +202,6 @@ const resetForm = () => {
   formRef.value?.resetFields()
 }
 
-const emit = defineEmits(['success']) // not used but keeping for consistency
 const submitForm = async () => {
   if (!formRef) return
   const valid = await formRef.value.validate()
@@ -224,7 +223,6 @@ const submitForm = async () => {
   }
 }
 
-const formRef_del = ref()
 const handleDelete = async (id: number) => {
   try {
     await message.delConfirm()

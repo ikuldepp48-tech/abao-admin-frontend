@@ -166,7 +166,7 @@ const open = async (type: string, id?: number) => {
   // 并行加载分类和加料
   const [cats, addons] = await Promise.all([
     CategoryApi.getSimpleCategoryList(),
-    AddonApi.getAddonListByBrand(1).catch(() => [] as AddonApi.AddonVO[])
+    AddonApi.getAddonListByBrand(3).catch(() => [] as AddonApi.AddonVO[])
   ])
   categoryList.value = cats
   buildAddonGroups(addons)
