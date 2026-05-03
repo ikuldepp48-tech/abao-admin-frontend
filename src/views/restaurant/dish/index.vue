@@ -20,6 +20,12 @@
         <el-button type="primary" @click="openForm('create')" v-hasPermi="['restaurant:dish:create']">
           <Icon icon="ep:plus" class="mr-5px" /> 新增
         </el-button>
+        <el-button type="success" plain @click="downloadTemplate" v-hasPermi="['restaurant:dish:query']">
+          <Icon icon="ep:download" class="mr-5px" /> 下载导入模板
+        </el-button>
+        <el-button type="warning" plain @click="openImportDialog" v-hasPermi="['restaurant:dish:create']">
+          <Icon icon="ep:upload" class="mr-5px" /> 批量导入
+        </el-button>
       </el-form-item>
     </el-form>
   </ContentWrap>
@@ -59,6 +65,52 @@
   </ContentWrap>
 
   <DishForm ref="formRef" @success="getList" />
+
+  <!-- 批量导入弹窗 -->
+  <Dialog v-model="importDialogVisible" title="批量导入菜品" width="600px">
+    <el-upload
+      ref="uploadRef"
+      v-model:file-list="fileList"
+      :auto-upload="false"
+      :disabled="importLoading"
+      :limit="1"
+      :on-exceed="handleExceed"
+      accept=".xlsx, .xls"
+      action="none"
+      drag
+    >
+      <Icon icon="ep:upload" />
+      <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+      <template #tip>
+        <div class="el-upload__tip">
+          <span>仅允许导入 xls、xlsx 格式文件。</span>
+          <el-link :underline="false" style="font-size:12px;vertical-align:baseline" type="primary" @click="downloadTemplate">
+            下载模板
+          </el-link>
+        </div>
+      </template>
+    </el-upload>
+
+    <!-- 导入结果 -->
+    <div v-if="importResult" class="mt-15px">
+      <el-alert :type="importResult.failCount > 0 ? 'warning' : 'success'" :closable="false">
+        <template #title>
+          成功 {{ importResult.successCount }} 条，跳过 {{ importResult.skipCount }} 条，失败 {{ importResult.failCount }} 条
+        </template>
+      </el-alert>
+      <el-table v-if="importResult.failDetails && importResult.failDetails.length > 0" :data="importResult.failDetails" class="mt-10px" max-height="300" stripe>
+        <el-table-column label="Sheet" prop="sheet" min-width="90" />
+        <el-table-column label="行号" prop="row" min-width="60" align="center" />
+        <el-table-column label="菜品名" prop="name" min-width="120" />
+        <el-table-column label="失败原因" prop="reason" min-width="200" />
+      </el-table>
+    </div>
+
+    <template #footer>
+      <el-button @click="importDialogVisible = false">取消</el-button>
+      <el-button :disabled="importLoading" type="primary" @click="submitImport">开始导入</el-button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -67,6 +119,8 @@ import { dateFormatter } from '@/utils/formatTime'
 import * as DishApi from '@/api/restaurant/dish'
 import * as CategoryApi from '@/api/restaurant/category'
 import DishForm from './DishForm.vue'
+import download from '@/utils/download'
+import type { UploadUserFile } from 'element-plus'
 
 defineOptions({ name: 'RestaurantDish' })
 
@@ -129,6 +183,54 @@ const handleDelete = async (id: number) => {
     message.success(t('common.delSuccess'))
     await getList()
   } catch {}
+}
+
+// ========== 批量导入 ==========
+const importDialogVisible = ref(false)
+const importLoading = ref(false)
+const uploadRef = ref()
+const fileList = ref<UploadUserFile[]>([])
+const importResult = ref<DishApi.ImportResultVO | null>(null)
+
+const downloadTemplate = async () => {
+  const res = await DishApi.downloadDishImportTemplate()
+  download.excel(res, '菜品导入模板.xlsx')
+}
+
+const openImportDialog = () => {
+  importResult.value = null
+  fileList.value = []
+  nextTick(() => uploadRef.value?.clearFiles())
+  importDialogVisible.value = true
+}
+
+const submitImport = async () => {
+  if (fileList.value.length === 0) {
+    message.error('请上传文件')
+    return
+  }
+  importLoading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', fileList.value[0].raw as Blob)
+    const res = await DishApi.importDishes(formData)
+    const result = res.data as DishApi.ImportResultVO
+    importResult.value = result
+    if (result.successCount > 0) {
+      await getList()
+      message.success(`导入完成：成功 ${result.successCount} 条，跳过 ${result.skipCount} 条，失败 ${result.failCount} 条`)
+    } else {
+      message.warning(`导入完成：成功 0 条，跳过 ${result.skipCount} 条，失败 ${result.failCount} 条`)
+    }
+  } catch {
+    message.error('导入失败，请重新上传')
+  } finally {
+    importLoading.value = false
+  }
+}
+
+const handleExceed = () => {
+  message.error('最多只能上传一个文件！')
 }
 
 onMounted(() => {

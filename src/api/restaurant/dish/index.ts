@@ -57,3 +57,27 @@ export const updateDish = async (data: DishVO) => {
 export const deleteDish = async (id: number) => {
   return await request.delete({ url: '/restaurant/dish-spu/delete?id=' + id })
 }
+
+// ========== 批量导入 ==========
+
+export interface ImportFailDetail {
+  sheet: string
+  row: number
+  name: string
+  reason: string
+}
+
+export interface ImportResultVO {
+  successCount: number
+  skipCount: number
+  failCount: number
+  failDetails: ImportFailDetail[]
+}
+
+export const downloadDishImportTemplate = () => {
+  return request.download({ url: '/restaurant/dish-import/download-template' })
+}
+
+export const importDishes = async (formData: FormData) => {
+  return await request.upload({ url: '/restaurant/dish-import/upload', data: formData })
+}
