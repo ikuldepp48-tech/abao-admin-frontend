@@ -865,6 +865,26 @@ const remainingRouter: AppRouteRecordRaw[] = [
           icon: 'ep:set-up',
           noCache: true
         }
+      },
+      {
+        path: 'combo',
+        component: () => import('@/views/restaurant/combo/index.vue'),
+        name: 'RestaurantCombo',
+        meta: {
+          title: '套餐管理',
+          icon: 'ep:collection-tag',
+          noCache: true
+        }
+      },
+      {
+        path: 'store-dish',
+        component: () => import('@/views/restaurant/storeDish/index.vue'),
+        name: 'RestaurantStoreDish',
+        meta: {
+          title: '门店菜品配置',
+          icon: 'ep:setting',
+          noCache: true
+        }
       }
     ]
   }
