@@ -905,6 +905,16 @@ const remainingRouter: AppRouteRecordRaw[] = [
           icon: 'ep:tickets',
           noCache: true
         }
+      },
+      {
+        path: 'printer',
+        component: () => import('@/views/restaurant/printer/index.vue'),
+        name: 'RestaurantPrinter',
+        meta: {
+          title: '打印机管理',
+          icon: 'ep:printer',
+          noCache: true
+        }
       }
     ]
   }
