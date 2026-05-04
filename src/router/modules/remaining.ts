@@ -204,6 +204,16 @@ const remainingRouter: AppRouteRecordRaw[] = [
     }
   },
   {
+    path: '/kds',
+    component: () => import('@/views/restaurant/kds/index.vue'),
+    name: 'Kds',
+    meta: {
+      hidden: true,
+      title: 'KDS厨房显示',
+      noTagsView: true
+    }
+  },
+  {
     path: '/403',
     component: () => import('@/views/Error/403.vue'),
     name: 'NoAccess',
