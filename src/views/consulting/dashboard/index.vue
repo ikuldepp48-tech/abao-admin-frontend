@@ -51,7 +51,7 @@
                 class="client-item"
               >
                 <div class="client-top">
-                  <span class="client-status-dot" :class="item.healthLevel" />
+                  <span class="client-status-dot" :class="item.healthLevel"></span>
                   <span class="client-name" :title="item.clientName">{{ truncate(item.clientName, 8) }}</span>
                   <span class="client-score" :class="item.healthLevel">{{ item.score }}分</span>
                 </div>

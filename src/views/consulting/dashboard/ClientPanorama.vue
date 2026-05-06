@@ -52,7 +52,7 @@
           :class="'card-' + item.healthLevel"
         >
           <div class="card-head">
-            <span class="card-status-dot" :class="item.healthLevel" />
+            <span class="card-status-dot" :class="item.healthLevel"></span>
             <span class="card-name">{{ truncate(item.clientName, 10) }}</span>
             <span class="card-industry">{{ item.industry || '-' }}</span>
           </div>
@@ -94,7 +94,7 @@
         <el-table-column label="客户名称" prop="clientName" min-width="120" sortable>
           <template #default="{ row }">
             <span class="table-name">
-              <span class="card-status-dot" :class="row.healthLevel" />
+              <span class="card-status-dot" :class="row.healthLevel"></span>
               {{ row.clientName }}
             </span>
           </template>
