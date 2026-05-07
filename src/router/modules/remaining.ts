@@ -806,16 +806,79 @@ const remainingRouter: AppRouteRecordRaw[] = [
     ]
   },
   {
+    path: '/consulting',
+    component: Layout,
+    name: 'Consulting',
+    redirect: '/consulting/dashboard',
+    meta: {
+      title: '咨询业务',
+      icon: 'ep:data-analysis',
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('@/views/consulting/dashboard/index.vue'),
+        name: 'ConsultingDashboard',
+        meta: {
+          title: '工作台',
+          icon: 'ep:odometer',
+          noCache: true
+        }
+      },
+      {
+        path: 'client',
+        component: () => import('@/views/consulting/client/index.vue'),
+        name: 'ConsultingClient',
+        meta: {
+          title: '客户档案',
+          icon: 'ep:user',
+          noCache: true
+        }
+      },
+      {
+        path: 'contact',
+        component: () => import('@/views/consulting/contact/index.vue'),
+        name: 'ConsultingContact',
+        meta: {
+          title: '联系人',
+          icon: 'ep:phone',
+          noCache: true
+        }
+      },
+      {
+        path: 'engagement',
+        component: () => import('@/views/consulting/engagement/index.vue'),
+        name: 'ConsultingEngagement',
+        meta: {
+          title: '咨询项目',
+          icon: 'ep:document',
+          noCache: true
+        }
+      }
+    ]
+  },
+  {
     path: '/restaurant',
     component: Layout,
     name: 'Restaurant',
-    redirect: '/restaurant/brand',
+    redirect: '/restaurant/dashboard',
     meta: {
       title: '餐饮',
       icon: 'ep:food',
       alwaysShow: true
     },
     children: [
+      {
+        path: 'dashboard',
+        component: () => import('@/views/restaurant/dashboard/index.vue'),
+        name: 'RestaurantDashboard',
+        meta: {
+          title: '运营看板',
+          icon: 'ep:data-board',
+          noCache: true
+        }
+      },
       {
         path: 'brand',
         component: () => import('@/views/restaurant/brand/index.vue'),

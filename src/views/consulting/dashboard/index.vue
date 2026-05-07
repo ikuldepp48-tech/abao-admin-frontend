@@ -1,5 +1,8 @@
 <template>
   <div class="dashboard">
+    <div style="padding:20px;background:#c0392b;color:#fff;font-size:18px;font-weight:bold;border-radius:8px;margin-bottom:12px;">
+      DEBUG: 工作台组件已渲染 — loading={{ loading }}, ranking={{ ranking.length }}条, todos={{ todos.length }}条
+    </div>
     <!-- 顶部统计卡片 -->
     <el-row :gutter="12" class="mb-12px">
       <el-col :xs="12" :sm="6" v-for="card in statCards" :key="card.label">
@@ -87,16 +90,8 @@
           </template>
 
           <el-skeleton v-if="loading" animated :rows="5" />
-          <div v-else-if="loadError.todos" class="error-state">
-            <span>加载失败</span>
-            <el-button size="small" @click="fetchData">重试</el-button>
-          </div>
-          <div v-else-if="!filteredTodos.length" class="empty-state">
-            <el-empty description="暂无待办" />
-          </div>
-
           <template v-else>
-            <!-- 筛选标签 -->
+            <!-- 筛选标签：不在空状态条件内，始终可见 -->
             <div class="todo-filter mb-8px">
               <el-radio-group v-model="todoFilter" size="small">
                 <el-radio-button value="all">全部</el-radio-button>
@@ -105,6 +100,14 @@
                 <el-radio-button value="deliverable_due">交付</el-radio-button>
               </el-radio-group>
             </div>
+            <div v-if="loadError.todos" class="error-state">
+              <span>加载失败</span>
+              <el-button size="small" @click="fetchData">重试</el-button>
+            </div>
+            <div v-else-if="!filteredTodos.length" class="empty-state">
+              <el-empty description="暂无待办" />
+            </div>
+            <template v-else>
 
             <!-- 必须本周 -->
             <div v-if="criticalTodos.length" class="todo-section">
@@ -127,6 +130,7 @@
                     link
                     size="small"
                     :type="act === '终止' ? 'danger' : 'primary'"
+                    @click="handleTodoAction(act, item.clientId)"
                   >{{ act }}</el-button>
                 </div>
               </div>
@@ -151,6 +155,7 @@
                     link
                     size="small"
                     type="primary"
+                    @click="handleTodoAction(act, item.clientId)"
                   >{{ act }}</el-button>
                 </div>
               </div>
@@ -174,10 +179,12 @@
                     :key="act"
                     link
                     size="small"
+                    @click="handleTodoAction(act, item.clientId)"
                   >{{ act }}</el-button>
                 </div>
               </div>
             </div>
+          </template>
           </template>
         </el-card>
       </el-col>
@@ -238,7 +245,7 @@ import {
 import ClientPanorama from './ClientPanorama.vue'
 import { useRouter } from 'vue-router'
 
-defineOptions({ name: 'ConsultingDashboard' })
+defineOptions({ name: 'ConsultingDashboard', inheritAttrs: false })
 
 const router = useRouter()
 
@@ -334,6 +341,20 @@ const viewClient = (id: number) => {
   router.push({ name: 'ConsultingClient', query: { id } })
 }
 
+const handleTodoAction = (action: string, clientId: number) => {
+  if (action === '终止') {
+    ElMessageBox.confirm('确认终止该项目合同？此操作不可撤销。', '警告', {
+      confirmButtonText: '确认终止',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      router.push({ name: 'ConsultingEngagement', query: { clientId } })
+    }).catch(() => {})
+  } else {
+    router.push({ name: 'ConsultingEngagement', query: { clientId } })
+  }
+}
+
 // ==================== Fetch ====================
 
 async function fetchData() {
@@ -353,7 +374,8 @@ async function fetchData() {
     ranking.value = r
     todos.value = t
     schedule.value = sch
-  } catch {
+  } catch (e) {
+    console.error('Dashboard API 请求失败:', e)
     loadError.ranking = true
     loadError.todos = true
     loadError.schedule = true

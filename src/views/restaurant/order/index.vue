@@ -110,8 +110,6 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import * as OrderApi from '@/api/restaurant/order'
-import { ContentWrap } from '@/components/ContentWrap'
-import { Pagination } from '@/components/Pagination'
 
 defineOptions({ name: 'RestaurantOrder' })
 

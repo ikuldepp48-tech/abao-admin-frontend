@@ -1,422 +1,302 @@
 <template>
   <div>
-    <el-card shadow="never">
-      <el-skeleton :loading="loading" animated>
-        <el-row :gutter="16" justify="space-between">
-          <el-col :xl="12" :lg="12" :md="12" :sm="24" :xs="24">
-            <div class="flex items-center">
-              <el-avatar :src="avatar" :size="70" class="mr-16px">
-                <img src="@/assets/imgs/avatar.gif" alt="" />
-              </el-avatar>
-              <div>
-                <div class="text-20px">
-                  {{ t('workplace.welcome') }} {{ username }} {{ t('workplace.happyDay') }}
-                </div>
-                <div class="mt-10px text-14px text-gray-500">
-                  {{ t('workplace.toady') }}，20℃ - 32℃！
-                </div>
-              </div>
+    <!-- 销售汇总卡片 -->
+    <el-row :gutter="12" class="mb-12px">
+      <el-col :span="4">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">今日订单</div>
+          <div class="stat-value">{{ dashboard?.salesSummary?.todayOrderCount ?? 0 }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">今日销售额</div>
+          <div class="stat-value">¥{{ (dashboard?.salesSummary?.todaySales ?? 0).toFixed(0) }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">本月订单</div>
+          <div class="stat-value">{{ dashboard?.salesSummary?.monthOrderCount ?? 0 }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">本月销售额</div>
+          <div class="stat-value">¥{{ (dashboard?.salesSummary?.monthSales ?? 0).toFixed(0) }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">门店总数</div>
+          <div class="stat-value">{{ dashboard?.salesSummary?.totalStores ?? 0 }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">营业中</div>
+          <div class="stat-value">{{ dashboard?.salesSummary?.activeStores ?? 0 }}</div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="12">
+      <!-- 左栏：品牌门店资料 -->
+      <el-col :span="14">
+        <el-card shadow="never" class="mb-12px">
+          <template #header>
+            <span class="card-header-title">品牌门店资料</span>
+          </template>
+          <el-scrollbar max-height="420px">
+            <div v-if="!dashboard?.brandStores?.length" class="empty-hint">暂无门店数据</div>
+            <el-row :gutter="12">
+              <el-col v-for="item in dashboard?.brandStores" :key="item.storeId" :span="12" class="mb-12px">
+                <el-card shadow="hover" class="store-card">
+                  <div class="store-header">
+                    <span class="store-name">{{ item.storeName }}</span>
+                    <el-tag size="small" type="warning">{{ item.brandName }}</el-tag>
+                  </div>
+                  <div class="store-body">
+                    <div class="store-info" v-if="item.address">
+                      <Icon icon="ep:location" :size="14" class="info-icon" />
+                      {{ [item.province, item.city, item.district, item.address].filter(Boolean).join('') }}
+                    </div>
+                    <div class="store-info" v-if="item.phone">
+                      <Icon icon="ep:phone" :size="14" class="info-icon" /> {{ item.phone }}
+                    </div>
+                    <div class="store-info" v-if="item.businessHours">
+                      <Icon icon="ep:clock" :size="14" class="info-icon" /> {{ item.businessHours }}
+                    </div>
+                    <div class="store-tags">
+                      <el-tag v-if="item.supportDineIn" size="small" type="success">堂食</el-tag>
+                      <el-tag v-if="item.supportTakeout" size="small" type="warning">外卖</el-tag>
+                      <el-tag v-if="item.supportPickup" size="small">自提</el-tag>
+                      <span v-if="item.areaSize" class="text-12px text-gray-400 ml-8px">{{ item.areaSize }}㎡</span>
+                      <span v-if="item.seatCount" class="text-12px text-gray-400 ml-8px">{{ item.seatCount }}座</span>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </el-scrollbar>
+        </el-card>
+      </el-col>
+
+      <!-- 右栏：门店销售排行 -->
+      <el-col :span="10">
+        <el-card shadow="never" class="mb-12px">
+          <template #header>
+            <span class="card-header-title">门店销售排行</span>
+          </template>
+          <div v-if="!dashboard?.storeRanking?.length" class="empty-hint">暂无销售数据</div>
+          <div v-else class="rank-list">
+            <div v-for="(item, idx) in dashboard.storeRanking" :key="item.storeId" class="rank-item">
+              <span class="rank-num" :class="{ 'top3': idx < 3 }">{{ idx + 1 }}</span>
+              <span class="rank-name">{{ item.storeName }}</span>
+              <span class="rank-count">{{ item.orderCount }}单</span>
+              <span class="rank-amount">¥{{ item.totalSales.toFixed(0) }}</span>
             </div>
-          </el-col>
-          <el-col :xl="12" :lg="12" :md="12" :sm="24" :xs="24">
-            <div class="h-70px flex items-center justify-end lt-sm:mt-10px">
-              <div class="px-8px text-right">
-                <div class="mb-16px text-14px text-gray-400">{{ t('workplace.project') }}</div>
-                <CountTo
-                  class="text-20px"
-                  :start-val="0"
-                  :end-val="totalSate.project"
-                  :duration="2600"
-                />
-              </div>
-              <el-divider direction="vertical" />
-              <div class="px-8px text-right">
-                <div class="mb-16px text-14px text-gray-400">{{ t('workplace.toDo') }}</div>
-                <CountTo
-                  class="text-20px"
-                  :start-val="0"
-                  :end-val="totalSate.todo"
-                  :duration="2600"
-                />
-              </div>
-              <el-divider direction="vertical" border-style="dashed" />
-              <div class="px-8px text-right">
-                <div class="mb-16px text-14px text-gray-400">{{ t('workplace.access') }}</div>
-                <CountTo
-                  class="text-20px"
-                  :start-val="0"
-                  :end-val="totalSate.access"
-                  :duration="2600"
-                />
-              </div>
-            </div>
-          </el-col>
-        </el-row>
-      </el-skeleton>
-    </el-card>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="12">
+      <!-- 菜品销售排行 -->
+      <el-col :span="14">
+        <el-card shadow="never">
+          <template #header>
+            <span class="card-header-title">菜品销售排行</span>
+          </template>
+          <div v-if="!dashboard?.dishRanking?.length" class="empty-hint">暂无销售数据</div>
+          <el-table v-else :data="dashboard.dishRanking" size="small" max-height="360">
+            <el-table-column type="index" label="排名" width="60" />
+            <el-table-column prop="dishName" label="菜品" min-width="120" />
+            <el-table-column prop="quantity" label="销量" width="80" sortable />
+            <el-table-column label="销售额" width="100" sortable sort-by="amount">
+              <template #default="scope">¥{{ scope.row.amount.toFixed(0) }}</template>
+            </el-table-column>
+            <el-table-column prop="storeName" label="所属门店" min-width="130" />
+          </el-table>
+        </el-card>
+      </el-col>
+
+      <!-- 顾客反馈热门词 -->
+      <el-col :span="10">
+        <el-card shadow="never">
+          <template #header>
+            <span class="card-header-title">顾客反馈热门词</span>
+          </template>
+          <div v-if="!dashboard?.hotWords?.length" class="empty-hint">暂无数据</div>
+          <div v-else class="hotword-cloud">
+            <span
+              v-for="item in dashboard.hotWords"
+              :key="item.word"
+              class="hotword-tag"
+              :style="{ fontSize: 12 + item.heat * 0.3 + 'px', color: hotColor(item.heat), opacity: 0.5 + item.heat * 0.005 }"
+            >
+              {{ item.word }}
+            </span>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
-
-  <el-row class="mt-8px" :gutter="8" justify="space-between">
-    <el-col :xl="16" :lg="16" :md="24" :sm="24" :xs="24" class="mb-8px">
-      <el-card shadow="never">
-        <template #header>
-          <div class="h-3 flex justify-between">
-            <span>{{ t('workplace.project') }}</span>
-            <el-link
-              type="primary"
-              :underline="false"
-              href="https://github.com/yudaocode"
-              target="_blank"
-            >
-              {{ t('action.more') }}
-            </el-link>
-          </div>
-        </template>
-        <el-skeleton :loading="loading" animated>
-          <el-row>
-            <el-col
-              v-for="(item, index) in projects"
-              :key="`card-${index}`"
-              :xl="8"
-              :lg="8"
-              :md="8"
-              :sm="24"
-              :xs="24"
-            >
-              <el-card
-                shadow="hover"
-                class="mr-5px mt-5px cursor-pointer"
-                @click="handleProjectClick(item.message)"
-              >
-                <div class="flex items-center">
-                  <Icon
-                    :icon="item.icon"
-                    :size="25"
-                    class="mr-8px"
-                    :style="{ color: item.color }"
-                  />
-                  <span class="text-16px">{{ item.name }}</span>
-                </div>
-                <div class="mt-12px text-12px text-gray-400">{{ t(item.message) }}</div>
-                <div class="mt-12px flex justify-between text-12px text-gray-400">
-                  <span>{{ item.personal }}</span>
-                  <span>{{ formatTime(item.time, 'yyyy-MM-dd') }}</span>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-skeleton>
-      </el-card>
-
-      <el-card shadow="never" class="mt-8px">
-        <el-skeleton :loading="loading" animated>
-          <el-row :gutter="20" justify="space-between">
-            <el-col :xl="10" :lg="10" :md="24" :sm="24" :xs="24">
-              <el-card shadow="hover" class="mb-8px">
-                <el-skeleton :loading="loading" animated>
-                  <Echart :options="pieOptionsData" :height="280" />
-                </el-skeleton>
-              </el-card>
-            </el-col>
-            <el-col :xl="14" :lg="14" :md="24" :sm="24" :xs="24">
-              <el-card shadow="hover" class="mb-8px">
-                <el-skeleton :loading="loading" animated>
-                  <Echart :options="barOptionsData" :height="280" />
-                </el-skeleton>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-skeleton>
-      </el-card>
-    </el-col>
-    <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24" class="mb-8px">
-      <el-card shadow="never">
-        <template #header>
-          <div class="h-3 flex justify-between">
-            <span>{{ t('workplace.shortcutOperation') }}</span>
-          </div>
-        </template>
-        <el-skeleton :loading="loading" animated>
-          <el-row>
-            <el-col v-for="item in shortcut" :key="`team-${item.name}`" :span="8" class="mb-8px">
-              <div class="flex items-center">
-                <Icon :icon="item.icon" class="mr-8px" :style="{ color: item.color }" />
-                <el-link type="default" :underline="false" @click="handleShortcutClick(item.url)">
-                  {{ item.name }}
-                </el-link>
-              </div>
-            </el-col>
-          </el-row>
-        </el-skeleton>
-      </el-card>
-      <el-card shadow="never" class="mt-8px">
-        <template #header>
-          <div class="h-3 flex justify-between">
-            <span>{{ t('workplace.notice') }}</span>
-            <el-link type="primary" :underline="false">{{ t('action.more') }}</el-link>
-          </div>
-        </template>
-        <el-skeleton :loading="loading" animated>
-          <div v-for="(item, index) in notice" :key="`dynamics-${index}`">
-            <div class="flex items-center">
-              <el-avatar :src="avatar" :size="35" class="mr-16px">
-                <img src="@/assets/imgs/avatar.gif" alt="" />
-              </el-avatar>
-              <div>
-                <div class="text-14px">
-                  <Highlight :keys="item.keys.map((v) => t(v))">
-                    {{ item.type }} : {{ item.title }}
-                  </Highlight>
-                </div>
-                <div class="mt-16px text-12px text-gray-400">
-                  {{ formatTime(item.date, 'yyyy-MM-dd') }}
-                </div>
-              </div>
-            </div>
-            <el-divider />
-          </div>
-        </el-skeleton>
-      </el-card>
-    </el-col>
-  </el-row>
 </template>
-<script lang="ts" setup>
-import { set } from 'lodash-es'
-import { EChartsOption } from 'echarts'
-import { formatTime } from '@/utils'
 
-import { useUserStore } from '@/store/modules/user'
-// import { useWatermark } from '@/hooks/web/useWatermark'
-import type { WorkplaceTotal, Project, Notice, Shortcut } from './types'
-import { pieOptions, barOptions } from './echarts-data'
-import { useRouter } from 'vue-router'
+<script setup lang="ts">
+import { getDashboard, type DashboardVO } from '@/api/restaurant/dashboard'
 
 defineOptions({ name: 'Index' })
 
-const { t } = useI18n()
-const router = useRouter()
-const userStore = useUserStore()
-// const { setWatermark } = useWatermark()
+const dashboard = ref<DashboardVO | null>(null)
 const loading = ref(true)
-const avatar = userStore.getUser.avatar
-const username = userStore.getUser.nickname
-const pieOptionsData = reactive<EChartsOption>(pieOptions) as EChartsOption
-// 获取统计数
-let totalSate = reactive<WorkplaceTotal>({
-  project: 0,
-  access: 0,
-  todo: 0
-})
 
-const getCount = async () => {
-  const data = {
-    project: 40,
-    access: 2340,
-    todo: 10
+const hotColor = (heat: number) => {
+  if (heat >= 70) return '#e74c3c'
+  if (heat >= 40) return '#e67e22'
+  if (heat >= 20) return '#2d8cf0'
+  return '#909399'
+}
+
+onMounted(async () => {
+  try {
+    dashboard.value = await getDashboard()
+  } finally {
+    loading.value = false
   }
-  totalSate = Object.assign(totalSate, data)
-}
-
-// 获取项目数
-let projects = reactive<Project[]>([])
-const getProject = async () => {
-  const data = [
-    {
-      name: 'ruoyi-vue-pro',
-      icon: 'simple-icons:springboot',
-      message: 'github.com/YunaiV/ruoyi-vue-pro',
-      personal: 'Spring Boot 单体架构',
-      time: new Date('2025-01-02'),
-      color: '#6DB33F'
-    },
-    {
-      name: 'yudao-ui-admin-vue3',
-      icon: 'ep:element-plus',
-      message: 'github.com/yudaocode/yudao-ui-admin-vue3',
-      personal: 'Vue3 + element-plus 管理后台',
-      time: new Date('2025-02-03'),
-      color: '#409EFF'
-    },
-    {
-      name: 'yudao-ui-mall-uniapp',
-      icon: 'icon-park-outline:mall-bag',
-      message: 'github.com/yudaocode/yudao-ui-mall-uniapp',
-      personal: 'Vue3 + uniapp 商城手机端',
-      time: new Date('2025-03-04'),
-      color: '#ff4d4f'
-    },
-    {
-      name: 'yudao-cloud',
-      icon: 'material-symbols:cloud-outline',
-      message: 'github.com/YunaiV/yudao-cloud',
-      personal: 'Spring Cloud 微服务架构',
-      time: new Date('2025-04-05'),
-      color: '#1890ff'
-    },
-    {
-      name: 'yudao-ui-admin-vben',
-      icon: 'devicon:antdesign',
-      message: 'github.com/yudaocode/yudao-ui-admin-vben',
-      personal: 'Vue3 + vben5(antd) 管理后台',
-      time: new Date('2025-05-06'),
-      color: '#e18525'
-    },
-    {
-      name: 'yudao-ui-admin-uniapp',
-      icon: 'ant-design:mobile',
-      message: 'github.com/yudaocode/yudao-ui-admin-uniapp',
-      personal: 'Vue3 + uniapp 管理手机端',
-      time: new Date('2025-06-01'),
-      color: '#2979ff'
-    }
-  ]
-  projects = Object.assign(projects, data)
-}
-
-// 获取通知公告
-let notice = reactive<Notice[]>([])
-const getNotice = async () => {
-  const data = [
-    {
-      title: '系统支持 JDK 8/17/21，Vue 2/3',
-      type: '技术兼容性',
-      keys: ['JDK', 'Vue'],
-      date: new Date()
-    },
-    {
-      title: '后端提供 Spring Boot 2.7/3.2 + Cloud 双架构',
-      type: '架构灵活性',
-      keys: ['Boot', 'Cloud'],
-      date: new Date()
-    },
-    {
-      title: '全部开源，个人与企业可 100% 直接使用，无需授权',
-      type: '开源免授权',
-      keys: ['无需授权'],
-      date: new Date()
-    },
-    {
-      title: '国内使用最广泛的快速开发平台，远超 10w+ 企业使用',
-      type: '广泛企业认可',
-      keys: ['最广泛', '10w+'],
-      date: new Date()
-    }
-  ]
-  notice = Object.assign(notice, data)
-}
-
-// 获取快捷入口
-let shortcut = reactive<Shortcut[]>([])
-
-const getShortcut = async () => {
-  const data = [
-    {
-      name: '首页',
-      icon: 'ion:home-outline',
-      url: '/',
-      color: '#1fdaca'
-    },
-    {
-      name: '商城中心',
-      icon: 'ep:shop',
-      url: '/mall/home',
-      color: '#ff6b6b'
-    },
-    {
-      name: 'AI 大模型',
-      icon: 'tabler:ai',
-      url: '/ai/chat',
-      color: '#7c3aed'
-    },
-    {
-      name: 'ERP 系统',
-      icon: 'simple-icons:erpnext',
-      url: '/erp/home',
-      color: '#3fb27f'
-    },
-    {
-      name: 'CRM 系统',
-      icon: 'simple-icons:civicrm',
-      url: '/crm/backlog',
-      color: '#4daf1bc9'
-    },
-    {
-      name: 'IoT 物联网',
-      icon: 'fa-solid:hdd',
-      url: '/iot/home',
-      color: '#1a73e8'
-    }
-  ]
-  shortcut = Object.assign(shortcut, data)
-}
-
-// 用户来源
-const getUserAccessSource = async () => {
-  const data = [
-    { value: 335, name: 'analysis.directAccess' },
-    { value: 310, name: 'analysis.mailMarketing' },
-    { value: 234, name: 'analysis.allianceAdvertising' },
-    { value: 135, name: 'analysis.videoAdvertising' },
-    { value: 1548, name: 'analysis.searchEngines' }
-  ]
-  set(
-    pieOptionsData,
-    'legend.data',
-    data.map((v) => t(v.name))
-  )
-  pieOptionsData!.series![0].data = data.map((v) => {
-    return {
-      name: t(v.name),
-      value: v.value
-    }
-  })
-}
-const barOptionsData = reactive<EChartsOption>(barOptions) as EChartsOption
-
-// 周活跃量
-const getWeeklyUserActivity = async () => {
-  const data = [
-    { value: 13253, name: 'analysis.monday' },
-    { value: 34235, name: 'analysis.tuesday' },
-    { value: 26321, name: 'analysis.wednesday' },
-    { value: 12340, name: 'analysis.thursday' },
-    { value: 24643, name: 'analysis.friday' },
-    { value: 1322, name: 'analysis.saturday' },
-    { value: 1324, name: 'analysis.sunday' }
-  ]
-  set(
-    barOptionsData,
-    'xAxis.data',
-    data.map((v) => t(v.name))
-  )
-  set(barOptionsData, 'series', [
-    {
-      name: t('analysis.activeQuantity'),
-      data: data.map((v) => v.value),
-      type: 'bar'
-    }
-  ])
-}
-
-const getAllApi = async () => {
-  await Promise.all([
-    getCount(),
-    getProject(),
-    getNotice(),
-    getShortcut(),
-    getUserAccessSource(),
-    getWeeklyUserActivity()
-  ])
-  loading.value = false
-}
-
-const handleProjectClick = (message: string) => {
-  window.open(`https://${message}`, '_blank')
-}
-
-const handleShortcutClick = (url: string) => {
-  router.push(url)
-}
-
-getAllApi()
+})
 </script>
+
+<style scoped>
+.stat-card {
+  text-align: center;
+}
+.stat-label {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #303133;
+}
+.card-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+.empty-hint {
+  text-align: center;
+  color: #c0c4cc;
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+/* 门店卡片 */
+.store-card {
+  border: 1px solid #ebeef5;
+}
+.store-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.store-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+.store-body {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.8;
+}
+.store-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+.info-icon {
+  flex-shrink: 0;
+  color: #909399;
+}
+.store-tags {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* 排行列表 */
+.rank-list {
+  max-height: 420px;
+  overflow-y: auto;
+}
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f2f2f2;
+  gap: 10px;
+  font-size: 13px;
+}
+.rank-num {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 4px;
+  background: #f0f2f5;
+  color: #909399;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.rank-num.top3 {
+  background: #e6a23c;
+  color: white;
+}
+.rank-name {
+  flex: 1;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-count {
+  color: #909399;
+  flex-shrink: 0;
+}
+.rank-amount {
+  color: #e6a23c;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 70px;
+  text-align: right;
+}
+
+/* 热词云 */
+.hotword-cloud {
+  min-height: 300px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+}
+.hotword-tag {
+  display: inline-block;
+  cursor: default;
+  font-weight: 600;
+  transition: transform 0.2s;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.hotword-tag:hover {
+  transform: scale(1.2);
+}
+</style>
