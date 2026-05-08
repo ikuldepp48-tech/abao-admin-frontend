@@ -1,40 +1,36 @@
 <template>
-  <ContentWrap title="订单管理">
-    <!-- 搜索栏 -->
-    <el-form :inline="true" :model="queryParams" class="search-form">
-      <el-form-item label="门店ID">
-        <el-input v-model="queryParams.storeId" placeholder="门店ID" clearable />
-      </el-form-item>
-      <el-form-item label="订单状态">
-        <el-select v-model="queryParams.status" placeholder="全部" clearable>
-          <el-option label="待支付" :value="0" />
-          <el-option label="已支付" :value="1" />
-          <el-option label="备餐中" :value="2" />
-          <el-option label="已出餐" :value="3" />
-          <el-option label="已完成" :value="4" />
-          <el-option label="已取消" :value="5" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="创建时间">
-        <el-date-picker
-          v-model="queryParams.createTime"
-          type="datetimerange"
-          range-separator="至"
-          start-placeholder="开始"
-          end-placeholder="结束"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          style="width: 360px"
-        />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleQuery">搜索</el-button>
-        <el-button @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-  </ContentWrap>
+  <AbaoPageHeader title="订单管理" />
+
+  <!-- 搜索栏 -->
+  <AbaoSearchBar @search="handleQuery" @reset="resetQuery">
+    <el-form-item label="门店ID">
+      <el-input v-model="queryParams.storeId" placeholder="门店ID" clearable />
+    </el-form-item>
+    <el-form-item label="订单状态">
+      <el-select v-model="queryParams.status" placeholder="全部" clearable>
+        <el-option label="待支付" :value="0" />
+        <el-option label="已支付" :value="1" />
+        <el-option label="备餐中" :value="2" />
+        <el-option label="已出餐" :value="3" />
+        <el-option label="已完成" :value="4" />
+        <el-option label="已取消" :value="5" />
+      </el-select>
+    </el-form-item>
+    <el-form-item label="创建时间">
+      <el-date-picker
+        v-model="queryParams.createTime"
+        type="datetimerange"
+        range-separator="至"
+        start-placeholder="开始"
+        end-placeholder="结束"
+        value-format="YYYY-MM-DD HH:mm:ss"
+        style="width: 360px"
+      />
+    </el-form-item>
+  </AbaoSearchBar>
 
   <!-- 订单列表 -->
-  <ContentWrap style="margin-top: 16px">
+  <AbaoCard title="订单列表">
     <el-table :data="list" v-loading="loading" border stripe>
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="orderNo" label="订单号" width="200" />
@@ -85,7 +81,7 @@
       :total="total"
       @pagination="getList"
     />
-  </ContentWrap>
+  </AbaoCard>
 
   <!-- 详情弹窗 -->
   <el-dialog v-model="detailVisible" title="订单详情" width="700px">
@@ -109,6 +105,9 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { AbaoPageHeader } from '@/components/AbaoPageHeader'
+import { AbaoSearchBar } from '@/components/AbaoSearchBar'
+import { AbaoCard } from '@/components/AbaoCard'
 import * as OrderApi from '@/api/restaurant/order'
 
 defineOptions({ name: 'RestaurantOrder' })

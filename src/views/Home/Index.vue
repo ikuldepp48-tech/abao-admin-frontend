@@ -1,52 +1,57 @@
 <template>
   <div>
-    <!-- 销售汇总卡片 -->
-    <el-row :gutter="12" class="mb-12px">
+    <AbaoPageHeader title="工作台" description="餐厅运营数据概览" />
+
+    <!-- KPI 统计卡片 -->
+    <el-row :gutter="12" class="mb-16px">
       <el-col :span="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-label">今日订单</div>
-          <div class="stat-value">{{ dashboard?.salesSummary?.todayOrderCount ?? 0 }}</div>
-        </el-card>
+        <AbaoStatCard
+          label="今日订单"
+          :value="dashboard?.salesSummary?.todayOrderCount ?? 0"
+          icon="ep:document"
+        />
       </el-col>
       <el-col :span="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-label">今日销售额</div>
-          <div class="stat-value">¥{{ (dashboard?.salesSummary?.todaySales ?? 0).toFixed(0) }}</div>
-        </el-card>
+        <AbaoStatCard
+          label="今日销售额"
+          :value="'¥' + (dashboard?.salesSummary?.todaySales ?? 0).toFixed(0)"
+          icon="ep:money"
+        />
       </el-col>
       <el-col :span="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-label">本月订单</div>
-          <div class="stat-value">{{ dashboard?.salesSummary?.monthOrderCount ?? 0 }}</div>
-        </el-card>
+        <AbaoStatCard
+          label="本月订单"
+          :value="dashboard?.salesSummary?.monthOrderCount ?? 0"
+          icon="ep:data-line"
+        />
       </el-col>
       <el-col :span="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-label">本月销售额</div>
-          <div class="stat-value">¥{{ (dashboard?.salesSummary?.monthSales ?? 0).toFixed(0) }}</div>
-        </el-card>
+        <AbaoStatCard
+          label="本月销售额"
+          :value="'¥' + (dashboard?.salesSummary?.monthSales ?? 0).toFixed(0)"
+          icon="ep:trend-charts"
+        />
       </el-col>
       <el-col :span="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-label">门店总数</div>
-          <div class="stat-value">{{ dashboard?.salesSummary?.totalStores ?? 0 }}</div>
-        </el-card>
+        <AbaoStatCard
+          label="门店总数"
+          :value="dashboard?.salesSummary?.totalStores ?? 0"
+          icon="ep:shop"
+        />
       </el-col>
       <el-col :span="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-label">营业中</div>
-          <div class="stat-value">{{ dashboard?.salesSummary?.activeStores ?? 0 }}</div>
-        </el-card>
+        <AbaoStatCard
+          label="营业中"
+          :value="dashboard?.salesSummary?.activeStores ?? 0"
+          icon="ep:circle-check"
+        />
       </el-col>
     </el-row>
 
     <el-row :gutter="12">
       <!-- 左栏：品牌门店资料 -->
       <el-col :span="14">
-        <el-card shadow="never" class="mb-12px">
-          <template #header>
-            <span class="card-header-title">品牌门店资料</span>
-          </template>
+        <AbaoCard title="品牌门店资料" class="mb-12px">
           <el-scrollbar max-height="420px">
             <div v-if="!dashboard?.brandStores?.length" class="empty-hint">暂无门店数据</div>
             <el-row :gutter="12">
@@ -79,15 +84,12 @@
               </el-col>
             </el-row>
           </el-scrollbar>
-        </el-card>
+        </AbaoCard>
       </el-col>
 
       <!-- 右栏：门店销售排行 -->
       <el-col :span="10">
-        <el-card shadow="never" class="mb-12px">
-          <template #header>
-            <span class="card-header-title">门店销售排行</span>
-          </template>
+        <AbaoCard title="门店销售排行" class="mb-12px">
           <div v-if="!dashboard?.storeRanking?.length" class="empty-hint">暂无销售数据</div>
           <div v-else class="rank-list">
             <div v-for="(item, idx) in dashboard.storeRanking" :key="item.storeId" class="rank-item">
@@ -97,17 +99,14 @@
               <span class="rank-amount">¥{{ item.totalSales.toFixed(0) }}</span>
             </div>
           </div>
-        </el-card>
+        </AbaoCard>
       </el-col>
     </el-row>
 
     <el-row :gutter="12">
       <!-- 菜品销售排行 -->
       <el-col :span="14">
-        <el-card shadow="never">
-          <template #header>
-            <span class="card-header-title">菜品销售排行</span>
-          </template>
+        <AbaoCard title="菜品销售排行">
           <div v-if="!dashboard?.dishRanking?.length" class="empty-hint">暂无销售数据</div>
           <el-table v-else :data="dashboard.dishRanking" size="small" max-height="360">
             <el-table-column type="index" label="排名" width="60" />
@@ -118,15 +117,12 @@
             </el-table-column>
             <el-table-column prop="storeName" label="所属门店" min-width="130" />
           </el-table>
-        </el-card>
+        </AbaoCard>
       </el-col>
 
       <!-- 顾客反馈热门词 -->
       <el-col :span="10">
-        <el-card shadow="never">
-          <template #header>
-            <span class="card-header-title">顾客反馈热门词</span>
-          </template>
+        <AbaoCard title="顾客反馈热门词">
           <div v-if="!dashboard?.hotWords?.length" class="empty-hint">暂无数据</div>
           <div v-else class="hotword-cloud">
             <span
@@ -138,7 +134,7 @@
               {{ item.word }}
             </span>
           </div>
-        </el-card>
+        </AbaoCard>
       </el-col>
     </el-row>
   </div>
@@ -146,6 +142,9 @@
 
 <script setup lang="ts">
 import { getDashboard, type DashboardVO } from '@/api/restaurant/dashboard'
+import { AbaoPageHeader } from '@/components/AbaoPageHeader'
+import { AbaoStatCard } from '@/components/AbaoStatCard'
+import { AbaoCard } from '@/components/AbaoCard'
 
 defineOptions({ name: 'Index' })
 
@@ -153,10 +152,10 @@ const dashboard = ref<DashboardVO | null>(null)
 const loading = ref(true)
 
 const hotColor = (heat: number) => {
-  if (heat >= 70) return '#e74c3c'
-  if (heat >= 40) return '#e67e22'
-  if (heat >= 20) return '#2d8cf0'
-  return '#909399'
+  if (heat >= 70) return 'var(--abao-red)'
+  if (heat >= 40) return 'var(--accent-blush)'
+  if (heat >= 20) return 'var(--accent-sky)'
+  return 'var(--ink-400)'
 }
 
 onMounted(async () => {
@@ -169,34 +168,17 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.stat-card {
-  text-align: center;
-}
-.stat-label {
-  font-size: 13px;
-  color: #909399;
-  margin-bottom: 8px;
-}
-.stat-value {
-  font-size: 22px;
-  font-weight: bold;
-  color: #303133;
-}
-.card-header-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-}
 .empty-hint {
   text-align: center;
-  color: #c0c4cc;
+  color: var(--ink-300);
   padding: 40px 0;
   font-size: 14px;
 }
 
 /* 门店卡片 */
 .store-card {
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--ink-100);
+  border-radius: var(--r-sm);
 }
 .store-header {
   display: flex;
@@ -207,11 +189,11 @@ onMounted(async () => {
 .store-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--ink-900);
 }
 .store-body {
   font-size: 12px;
-  color: #606266;
+  color: var(--ink-700);
   line-height: 1.8;
 }
 .store-info {
@@ -222,7 +204,7 @@ onMounted(async () => {
 }
 .info-icon {
   flex-shrink: 0;
-  color: #909399;
+  color: var(--ink-400);
 }
 .store-tags {
   margin-top: 6px;
@@ -241,7 +223,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #f2f2f2;
+  border-bottom: 1px solid var(--ink-100);
   gap: 10px;
   font-size: 13px;
 }
@@ -250,29 +232,29 @@ onMounted(async () => {
   height: 24px;
   line-height: 24px;
   text-align: center;
-  border-radius: 4px;
-  background: #f0f2f5;
-  color: #909399;
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--ink-400);
   font-weight: 600;
   flex-shrink: 0;
 }
 .rank-num.top3 {
-  background: #e6a23c;
+  background: var(--abao-red);
   color: white;
 }
 .rank-name {
   flex: 1;
-  color: #303133;
+  color: var(--ink-900);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .rank-count {
-  color: #909399;
+  color: var(--ink-400);
   flex-shrink: 0;
 }
 .rank-amount {
-  color: #e6a23c;
+  color: var(--abao-red);
   font-weight: 600;
   flex-shrink: 0;
   min-width: 70px;

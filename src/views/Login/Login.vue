@@ -5,12 +5,13 @@
   >
     <div class="relative mx-auto h-full flex">
       <div
-        :class="`${prefixCls}__left flex-1 bg-gray-500 bg-opacity-20 relative p-30px lt-xl:hidden overflow-x-hidden overflow-y-auto`"
+        :class="`${prefixCls}__left flex-1 relative p-30px lt-xl:hidden overflow-x-hidden overflow-y-auto`"
+        style="background: linear-gradient(135deg, var(--abao-red-deep) 0%, var(--abao-red) 60%, var(--abao-red-soft) 100%)"
       >
         <!-- 左上角的 logo + 系统标题 -->
         <div class="relative flex items-center text-white">
           <img alt="" class="mr-10px h-48px w-48px" src="@/assets/imgs/logo.png" />
-          <span class="text-20px font-bold">{{ underlineToHump(appStore.getTitle) }}</span>
+          <span class="text-20px font-bold" style="font-family: var(--font-display)">{{ underlineToHump(appStore.getTitle) }}</span>
         </div>
         <!-- 左边的背景图 + 欢迎语 -->
         <div class="h-[calc(100%-60px)] flex items-center justify-center">
@@ -20,8 +21,8 @@
             tag="div"
           >
             <img key="1" alt="" class="w-350px" src="@/assets/svgs/login-box-bg.svg" />
-            <div key="2" class="text-3xl text-white">{{ t('login.welcome') }}</div>
-            <div key="3" class="mt-5 text-14px font-normal text-white">
+            <div key="2" class="text-3xl text-white" style="font-family: var(--font-display); text-shadow: 0 2px 8px rgba(0,0,0,0.15)">{{ t('login.welcome') }}</div>
+            <div key="3" class="mt-5 text-14px font-normal text-white" style="opacity: 0.9">
               {{ t('login.message') }}
             </div>
           </TransitionGroup>
