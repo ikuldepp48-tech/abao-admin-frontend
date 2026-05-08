@@ -132,7 +132,7 @@ import { useRouter } from 'vue-router'
 
 defineOptions({ name: 'ClientPanorama' })
 
-defineProps<{ visible: boolean }>()
+const props = defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ 'update:visible': [val: boolean] }>()
 
 const router = useRouter()

@@ -1,32 +1,28 @@
 <template>
-  <ContentWrap>
-    <el-form class="-mb-15px" :model="queryParams" ref="queryFormRef" :inline="true" label-width="68px">
-      <el-form-item label="门店" prop="storeId">
-        <el-select v-model="queryParams.storeId" placeholder="选择门店" clearable class="!w-200px" @change="handleQuery">
-          <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="选择状态" clearable class="!w-200px">
-          <el-option v-for="dict in getIntDictOptions(DICT_TYPE.COMMON_STATUS)" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" /> 搜索</el-button>
-        <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" /> 重置</el-button>
-      </el-form-item>
-    </el-form>
-  </ContentWrap>
+  <AbaoPageHeader title="门店菜品管理" />
 
-  <ContentWrap>
-    <div class="mb-10px">
+  <AbaoSearchBar @search="handleQuery" @reset="resetQuery">
+    <el-form-item label="门店" prop="storeId">
+      <el-select v-model="queryParams.storeId" placeholder="选择门店" clearable style="width: 200px" @change="handleQuery">
+        <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
+      </el-select>
+    </el-form-item>
+    <el-form-item label="状态" prop="status">
+      <el-select v-model="queryParams.status" placeholder="选择状态" clearable style="width: 200px">
+        <el-option v-for="dict in getIntDictOptions(DICT_TYPE.COMMON_STATUS)" :key="dict.value" :label="dict.label" :value="dict.value" />
+      </el-select>
+    </el-form-item>
+  </AbaoSearchBar>
+
+  <AbaoCard title="菜品列表">
+    <template #header>
       <el-button type="danger" @click="handleBatchSoldOut" :disabled="selectedIds.length === 0" v-hasPermi="['restaurant:dish:update']">
         一键沽清
       </el-button>
       <el-button type="success" @click="handleBatchRestore" :disabled="selectedIds.length === 0" v-hasPermi="['restaurant:dish:update']">
         批量恢复
       </el-button>
-    </div>
+    </template>
     <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="45" align="center" />
       <el-table-column label="编号" align="center" prop="id" min-width="60" />
@@ -78,11 +74,14 @@
       <el-table-column label="排序" align="center" prop="sort" min-width="60" />
     </el-table>
     <Pagination :total="total" v-model:page="queryParams.pageNo" v-model:limit="queryParams.pageSize" @pagination="getList" />
-  </ContentWrap>
+  </AbaoCard>
 </template>
 
 <script setup lang="ts">
 import { DICT_TYPE, getIntDictOptions } from '@/utils/dict'
+import { AbaoPageHeader } from '@/components/AbaoPageHeader'
+import { AbaoSearchBar } from '@/components/AbaoSearchBar'
+import { AbaoCard } from '@/components/AbaoCard'
 import * as StoreDishApi from '@/api/restaurant/storeDish'
 import * as StoreApi from '@/api/restaurant/store'
 import * as DishApi from '@/api/restaurant/dish'

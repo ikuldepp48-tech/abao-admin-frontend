@@ -1,25 +1,23 @@
 <template>
-  <ContentWrap>
-    <el-form class="-mb-15px" :model="queryParams" ref="queryFormRef" :inline="true" label-width="68px">
-      <el-form-item label="分类名称" prop="name">
-        <el-input v-model="queryParams.name" placeholder="请输入分类名称" clearable @keyup.enter="handleQuery" class="!w-240px" />
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable class="!w-240px">
-          <el-option v-for="dict in getIntDictOptions(DICT_TYPE.COMMON_STATUS)" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" /> 搜索</el-button>
-        <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" /> 重置</el-button>
-        <el-button type="primary" @click="openForm('create')" v-hasPermi="['restaurant:category:create']">
-          <Icon icon="ep:plus" class="mr-5px" /> 新增
-        </el-button>
-      </el-form-item>
-    </el-form>
-  </ContentWrap>
+  <AbaoPageHeader title="菜品分类管理" />
 
-  <ContentWrap>
+  <AbaoSearchBar @search="handleQuery" @reset="resetQuery">
+    <el-form-item label="分类名称" prop="name">
+      <el-input v-model="queryParams.name" placeholder="请输入分类名称" clearable @keyup.enter="handleQuery" style="width: 240px" />
+    </el-form-item>
+    <el-form-item label="状态" prop="status">
+      <el-select v-model="queryParams.status" placeholder="请选择状态" clearable style="width: 240px">
+        <el-option v-for="dict in getIntDictOptions(DICT_TYPE.COMMON_STATUS)" :key="dict.value" :label="dict.label" :value="dict.value" />
+      </el-select>
+    </el-form-item>
+    <template #extra>
+      <el-button type="primary" @click="openForm('create')" v-hasPermi="['restaurant:category:create']">
+        <Icon icon="ep:plus" class="mr-5px" /> 新增
+      </el-button>
+    </template>
+  </AbaoSearchBar>
+
+  <AbaoCard title="分类列表">
     <el-table v-loading="loading" :data="list" :stripe="true" :show-overflow-tooltip="true" row-key="id">
       <el-table-column label="编号" align="center" prop="id" min-width="60" />
       <el-table-column label="分类名称" align="center" prop="name" min-width="120" />
@@ -39,12 +37,15 @@
       </el-table-column>
     </el-table>
     <Pagination :total="total" v-model:page="queryParams.pageNo" v-model:limit="queryParams.pageSize" @pagination="getList" />
-  </ContentWrap>
+  </AbaoCard>
 
   <CategoryForm ref="formRef" @success="getList" />
 </template>
 
 <script setup lang="ts">
+import { AbaoPageHeader } from '@/components/AbaoPageHeader'
+import { AbaoSearchBar } from '@/components/AbaoSearchBar'
+import { AbaoCard } from '@/components/AbaoCard'
 import { DICT_TYPE, getIntDictOptions } from '@/utils/dict'
 import { dateFormatter } from '@/utils/formatTime'
 import * as CategoryApi from '@/api/restaurant/category'
